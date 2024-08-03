@@ -39,12 +39,33 @@ class ObtainAuthToken(APIView):
 
     def post(self, request):
         user_instance = authenticate(email=request.data.get(
-            'email'), password=request.data.get('password'))
+            'email').lower(), password=request.data.get('password'))
         if user_instance is not None:
             refresh = RefreshToken.for_user(user_instance)
             return Response(data={"success": "true", "refresh": str(refresh), "access": str(refresh.access_token)}, status=status.HTTP_200_OK)
         else:
-            return Response(data={"success": "false", "message": "User Not Found."})
+            return Response(data={"success": "false", "message": "No user found with the entered email address or password."})
+
+
+class ObtainAuthTokenGoogleLogin(APIView):
+    permission_classes = (permissions.AllowAny,)
+    authentication_classes = ()
+
+    def post(self, request):
+        google_data = request.data.get('user_data')
+        user_qs = User.objects.filter(email=google_data.get('email'))
+        if user_qs.exists():
+            user_instance = user_qs.last()
+            if user_instance.is_registered_by_google == False:
+                if user_instance.is_email_verified == False:
+                    return Response(data={"success": "false", "message": "Email already registered without Google.\nLog in with password and verify email for Google login."})
+            # elif user_instance.is_registered_by_google == True:
+
+            refresh = RefreshToken.for_user(user_instance)
+            return Response(data={"success": "true", "refresh": str(refresh), "access": str(refresh.access_token)}, status=status.HTTP_200_OK)
+
+        else:
+            return Response(data={"success": "false", "message": "Email not registered"})
 
 
 class Config(APIView):

@@ -42,6 +42,7 @@ class User(AbstractUser):
     raw_password = models.CharField(max_length=30, blank=True, null=True)
     profile_img_url = models.URLField(max_length=200, blank=True, null=True)
     is_email_verified = models.BooleanField(default=False)
+    is_registered_by_google = models.BooleanField(default=False)
 
     objects = UserManager()
 
