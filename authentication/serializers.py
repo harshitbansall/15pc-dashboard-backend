@@ -10,10 +10,13 @@ class UserSerializer(serializers.ModelSerializer):
     email = serializers.CharField(min_length=6, required=True)
     password = serializers.CharField(min_length=8, write_only=True, required=True)
     raw_password = serializers.CharField(min_length=8)
+    is_email_verified = serializers.BooleanField(required=False)
+    is_registered_by_google = serializers.BooleanField(required=False)
+    profile_img_url = serializers.URLField(required=False)
 
     class Meta:
         model = User
-        fields = ('full_name', 'email', 'password', 'raw_password')
+        fields = ('full_name', 'email', 'password', 'raw_password','is_email_verified', 'is_registered_by_google', 'profile_img_url')
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
@@ -26,33 +29,6 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class ConfigUserSerializer(serializers.ModelSerializer):
-    # amount_invested = serializers.SerializerMethodField("get_amount_invested")
-    # amount_invested_str = serializers.SerializerMethodField("get_amount_invested_str")
-    # earned_interest = serializers.SerializerMethodField("get_earned_interest")
-    # earned_interest_str = serializers.SerializerMethodField("get_earned_interest_str")
-
-
     class Meta:
         model = User
         fields = ('full_name', 'email', 'profile_img_url')
-        # fields = ('full_name', 'email', 'profile_img_url','amount_invested', 'amount_invested_str', 'earned_interest', 'earned_interest_str')
-
-    # def get_amount_invested(self, obj):
-    #     self.payments_qs = obj.payment_set.all()
-    #     self.amount_invested = round(sum([x.amount for x in self.payments_qs]), 2)
-    #     return self.amount_invested
-
-    # def get_amount_invested_str(self, obj):
-    #     return f"₹ {self.amount_invested:,.2f}"
-
-    # def get_earned_interest(self, obj):
-    #     all_interests = []
-    #     for payment in self.payments_qs:
-    #         days_from_payment = (datetime.today() - payment.created_at.replace(tzinfo=None)).days
-    #         interest_of_payment = (payment.amount * 0.00041 * days_from_payment)
-    #         all_interests += [interest_of_payment]
-    #     self.earned_interest = round(sum(all_interests), 2)
-    #     return self.earned_interest
-    
-    # def get_earned_interest_str(self, obj):
-    #     return f"₹ {self.earned_interest:,.2f}"

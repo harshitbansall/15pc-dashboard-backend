@@ -21,6 +21,8 @@ class UserCreate(APIView):
             'email': request.data.get('email'),
             'password': request.data.get('password'),
             'raw_password': request.data.get('password'),
+            'is_registered_by_google':False,
+            'is_email_verified':False
         })
         if serializer.is_valid():
             try:
@@ -30,7 +32,7 @@ class UserCreate(APIView):
             except Exception as e:
                 return Response(data={"success": "false", "message": str(e).title()})
         else:
-            return Response(data={"success": "false", "message": serializer.errors})
+            return Response(data={"success": "false", "message": str(serializer.errors)})
 
 
 class ObtainAuthToken(APIView):
@@ -52,7 +54,7 @@ class ObtainAuthTokenGoogleLogin(APIView):
     authentication_classes = ()
 
     def post(self, request):
-        google_data = request.data.get('user_data')
+        google_data = request.data.get('google_user_data')
         user_qs = User.objects.filter(email=google_data.get('email'))
         if user_qs.exists():
             user_instance = user_qs.last()
@@ -66,6 +68,37 @@ class ObtainAuthTokenGoogleLogin(APIView):
 
         else:
             return Response(data={"success": "false", "message": "Email not registered"})
+
+
+class UserCreateGoogle(APIView):
+    permission_classes = (permissions.AllowAny,)
+    authentication_classes = ()
+
+    def post(self, request):
+        google_data = request.data.get('google_user_data')
+        user_qs = User.objects.filter(email=google_data.get('email'))
+        if user_qs.exists() == False:
+            serializer = UserSerializer(data={
+                'full_name': google_data.get('name').title() if google_data.get('name') else None,
+                'email': google_data.get('email'),
+                'password': str(google_data),
+                'raw_password': str(google_data),
+                'is_registered_by_google':True,
+                'is_email_verified':google_data.get('email_verified'),
+                'profile_img_url':google_data.get('picture')
+            })
+            if serializer.is_valid():
+                try:
+                    created_user = serializer.save()
+                    refresh = RefreshToken.for_user(created_user)
+                    return Response(data={"success": "true", "message": "User Created.", "refresh": str(refresh), "access": str(refresh.access_token)}, status=status.HTTP_200_OK)
+                except Exception as e:
+                    return Response(data={"success": "false", "message": str(e).title()})
+            else:
+                return Response(data={"success": "false", "message": str(serializer.errors)})
+
+        else:
+            return Response(data={"success": "false", "message": "Email already registered."})
 
 
 class Config(APIView):

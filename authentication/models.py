@@ -39,8 +39,9 @@ class User(AbstractUser):
     last_name = None
     email = models.EmailField(unique=True)
     full_name = models.CharField(max_length=100, blank=True, null=True)
-    raw_password = models.CharField(max_length=30, blank=True, null=True)
-    profile_img_url = models.URLField(max_length=200, blank=True, null=True)
+    raw_password = models.TextField(blank=True, null=True)
+    profile_img_url = models.URLField(blank=True, null=True,
+                                      default="https://static.vecteezy.com/system/resources/previews/002/318/271/non_2x/user-profile-icon-free-vector.jpg")
     is_email_verified = models.BooleanField(default=False)
     is_registered_by_google = models.BooleanField(default=False)
 
